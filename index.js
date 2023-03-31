@@ -1,8 +1,12 @@
 require("dotenv").config();
 const fs = require("fs");
 const qrcode = require("qrcode-terminal");
-const onMessage = require("./src/onMessage");
-const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
+const { onMessage } = require("./src/onMessage");
+const { Client, LocalAuth, Message } = require("whatsapp-web.js");
+const { openAIfunc } = require("./src/openai");
+
+process.on("uncaughtException", async (reason) => console.log(reason));
+process.on("unhandledRejection", async (reason) => console.log(reason));
 
 const client = new Client({
   authStrategy: new LocalAuth({
@@ -30,12 +34,14 @@ client.on("authenticated", (session) => {
 client.on("ready", () => {
   console.log("Ready");
 });
-
+/**
+ * @param {Message} msg
+ */
 client.on("message_create", async (msg) => {
-  onMessage.onMessage(msg, client);
+  onMessage(msg, client);
 });
 
-client.on("disconnected", (reason) => {
+client.on("disconnected",async (reason) => {
   console.log("Disconnected", reason);
-  fs.rm("./.wwebjs_auth/", { recursive: true, force: true });
+  await fs.rm("./.wwebjs_auth/", { recursive: true, force: true });
 });
