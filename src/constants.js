@@ -10,13 +10,13 @@ const helpMsg = (userName) => {
     "\n    i: _!yt some.youtube.link_ " +
     "\n   ii: _!yt audio / video_" +
     "\n\n_4._*!help*: To get this message." +
-    "\n\n```-> Note:``` You can use any one these character to command *['!', '.', '_']*.";
+    "\n\n```-> Note:``` You can use any one these character to command *_['!', '.', '_', '#']_*.";
   return msg;
 };
 module.exports = {
-  chat: ["!chat", ".chat", "_chat"],
-  help: ["!help", ".help", "_help"],
-  sticker: ["!sticker", ".sticker", "_sticker"],
-  yt: ["!yt", ".yt", "_yt"],
+  chat: ["!chat", ".chat", "_chat", "#chat"],
+  help: ["!help", ".help", "_help", "#help"],
+  sticker: ["!sticker", ".sticker", "_sticker", "#sticker"],
+  yt: ["!yt", ".yt", "_yt", "#yt"],
   helpMsg,
 };

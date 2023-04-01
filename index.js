@@ -3,7 +3,7 @@ const fs = require("fs");
 const qrcode = require("qrcode-terminal");
 const { onMessage } = require("./src/onMessage");
 const { Client, LocalAuth, Message } = require("whatsapp-web.js");
-const { openAIfunc } = require("./src/openai");
+const { deleteExpiredObjects } = require("./src/openai");
 
 process.on("uncaughtException", async (reason) => console.log(reason));
 process.on("unhandledRejection", async (reason) => console.log(reason));
@@ -41,7 +41,9 @@ client.on("message_create", async (msg) => {
   onMessage(msg, client);
 });
 
-client.on("disconnected",async (reason) => {
+client.on("disconnected", async (reason) => {
   console.log("Disconnected", reason);
   await fs.rm("./.wwebjs_auth/", { recursive: true, force: true });
 });
+
+setInterval(deleteExpiredObjects, 60000); // 1 minute
