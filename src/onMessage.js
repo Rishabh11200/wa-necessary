@@ -1,8 +1,11 @@
 const { Message, Client } = require("whatsapp-web.js");
 const { checkStartCMD, removeStartCMD, checkSysMsg } = require("./utlis");
-const { chat, help, helpMsg, sticker } = require("./constants");
+const { chat, help, helpMsg, sticker, ytMiniHelp, yt } = require("./constants");
 const { openAIfunc } = require("./openai");
+const ytdl = require("ytdl-core");
+const { onAudio, onVideo } = require("./yt");
 
+globalThis.ytReplied = null;
 /**
  * @param {Message} msg
  * @param {Client} client
@@ -80,6 +83,43 @@ const onMessage = async (msg, client) => {
   if (!msg.hasQuotedMsg && checkStartCMD(sticker, msg.body)) {
     msg.react("❌");
     msg.reply("Please reply to any media(Image/Video/Audio)");
+  }
+  if (ytdl.validateURL(msg.body.toString())) {
+    msg.react("🔮");
+    await client.sendMessage(chatID.id._serialized, ytMiniHelp).then((msg) => {
+      msg.react("⏳");
+      globalThis.ytReplied = msg;
+    });
+  }
+  if (
+    msg.hasQuotedMsg &&
+    (msg.body.toString().toLowerCase().startsWith("audio") ||
+      msg.body.toString().toLowerCase().startsWith("video"))
+  ) {
+    const quotedLink = await msg.getQuotedMessage();
+    const msgLow = msg.body.toString().toLowerCase();
+    if (ytdl.validateURL(quotedLink.body.toString())) {
+      msg.react("⏬");
+      if (globalThis.ytReplied) {
+        globalThis.ytReplied.react("⏬");
+      }
+      if (msgLow === "audio") {
+        await onAudio(
+          quotedLink.body.toString(),
+          client,
+          chatID.id._serialized,
+          msg
+        );
+      }
+      if (msgLow === "video") {
+        await onVideo(
+          quotedLink.body.toString(),
+          client,
+          chatID.id._serialized,
+          msg
+        );
+      }
+    }
   }
 };
 

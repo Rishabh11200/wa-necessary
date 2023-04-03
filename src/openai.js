@@ -9,7 +9,6 @@ let allChats = {};
 const openAIfunc = async (query, singleChatID, sysMsg = null) => {
   let SYS =
     sysMsg ?? "You are ChatGPT, a large language model trained by OpenAI";
-  console.log(SYS);
   if (allChats[`${singleChatID}`]) {
     if (sysMsg !== null) {
       allChats[`${singleChatID}`].push(
@@ -29,12 +28,11 @@ const openAIfunc = async (query, singleChatID, sysMsg = null) => {
   }
   let toPassInOpenAI = {};
 
-for (const [key, arr] of Object.entries(allChats)) {
-  const filteredArr = arr.filter(item => !item.hasOwnProperty('timestamp'));
-  toPassInOpenAI[key] = filteredArr;
-}
+  for (const [key, arr] of Object.entries(allChats)) {
+    const filteredArr = arr.filter((item) => !item.hasOwnProperty("timestamp"));
+    toPassInOpenAI[key] = filteredArr;
+  }
 
-  console.log(toPassInOpenAI, "\n\n\n\n");  
   const completion = await openaiConfigs.createChatCompletion({
     model: "gpt-3.5-turbo",
     max_tokens: 1500,
@@ -62,7 +60,6 @@ function deleteExpiredObjects() {
       }
     }
   }
-  console.log(allChats);
   return allChats;
 }
 

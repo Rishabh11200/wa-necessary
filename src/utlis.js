@@ -1,3 +1,6 @@
+const fs = require("fs");
+const request = require("request");
+
 function removeStartCMD(wordArr, main) {
   let firstTemp;
   wordArr.some((word) => {
@@ -41,8 +44,22 @@ function checkStartCMD(arr, string) {
   return arr.some((word) => str.startsWith(word));
 }
 
+var download = function (uri, filename, callback) {
+  request.head(uri, async function (err, res, body) {
+    request(uri).pipe(fs.createWriteStream(filename)).on("close", callback);
+  });
+};
+
+function checkAndUnlink(path) {
+  if (fs.existsSync(path)) {
+    fs.unlinkSync(path);
+  }
+}
+
 module.exports = {
   removeStartCMD,
   checkStartCMD,
   checkSysMsg,
+  download,
+  checkAndUnlink,
 };

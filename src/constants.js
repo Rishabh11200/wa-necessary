@@ -13,10 +13,14 @@ const helpMsg = (userName) => {
     "\n\n```-> Note:``` You can use any one these character to command *_['!', '.', '_', '#']_*.";
   return msg;
 };
+// const ytMiniHelp = "Want to download it as *Audio* or *Video*? \nReply to your youtube link above.👆🏻🙃";
+const ytMiniHelp = "Reply to youtube link: *Audio* / *Video*_?_👆🏻🤔💭";
+
 module.exports = {
   chat: ["!chat", ".chat", "_chat", "#chat"],
   help: ["!help", ".help", "_help", "#help"],
   sticker: ["!sticker", ".sticker", "_sticker", "#sticker"],
   yt: ["!yt", ".yt", "_yt", "#yt"],
+  ytMiniHelp,
   helpMsg,
 };
