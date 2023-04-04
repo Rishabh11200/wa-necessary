@@ -249,137 +249,116 @@ const onVideo = async (ytLink, client, toChat, msgForID) => {
           info?.player_response?.captions?.playerCaptionsTracklistRenderer
             ?.captionTracks;
         const format = "vtt";
-        console.log(fs.readFileSync(`./db/${universalName}.mp4`,{encoding: 'base64'}));
-        const mp4 = MessageMedia.fromFilePath(`./db/${universalName}.mp4`);
-        console.log(mp4);
-          mp4.filename = `${title}.mp4`;
-          await client
-            .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
-            .then(async (sent) => {
-              sent.react("✅");
-              msgForID.react("✅");
-              checkAndUnlink(`./db/${universalName}.mkv`);
-              checkAndUnlink(`./db/${universalName}.mp4`);
-              checkAndUnlink(`./db/${universalName}.vtt`);
-              // await globalThis.ytReplied.delete(true);
-            })
-            .catch(async (err) => {
-              console.log("Sending audio", err);
-              msgForID.react("❌");
-              await client.sendMessage(toChat, "Try again");
-              checkAndUnlink(`./db/${universalName}.mkv`);
-              checkAndUnlink(`./db/${universalName}.mp4`);
-              checkAndUnlink(`./db/${universalName}.vtt`);
-            });
-        // if (tracks && tracks.length) {
-        //   const track = tracks.find((t) => t.languageCode === "en");
-        //   console.log(track);
-        //   if (track) {
-        //     const output = `${info.videoDetails.title}.${track.languageCode}.${format}`;
-        //     fs.writeFileSync(`./db/${universalName}.vtt`, "");
-        //     fs.writeFileSync(`./db/${universalName}1.mp4`, "");
-        //     download(
-        //       `${track.baseUrl}&fmt=${format}`,
-        //       `./db/${universalName}.vtt`,
-        //       function () {
-        //         ffmpeg(`./db/${universalName}.mp4`)
-        //           .inputFormat("mp4")
-        //           .input(`./db/${universalName}.vtt`)
-        //           .outputOptions(
-        //             "-c:v",
-        //             "copy",
-        //             "-c:a",
-        //             "copy",
-        //             "-c:s",
-        //             "mov_text",
-        //             "-metadata:s:s:0",
-        //             "language=eng",
-        //             "-metadata:s:s:0",
-        //             'title="English"',
-        //             "-disposition:s:0",
-        //             "forced"
-        //           )
-        //           .output(`./db/${universalName}1.mp4`)
-        //           .on("error", (error, stdout, stderr) => {
-        //             console.error(
-        //               `Failed to merge video and subtitles: ${error}`
-        //             );
-        //           })
-        //           .on("end", async () => {
-        //             const mp4 = await MessageMedia.fromFilePath(
-        //               `./db/${universalName}1.mp4`
-        //             );
-        //             mp4.filename = `${title}.mp4`;
-        //             await client
-        //               .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
-        //               .then(async (sent) => {
-        //                 sent.react("✅");
-        //                 msgForID.react("✅");
-        //                 checkAndUnlink(`./db/${universalName}.mkv`);
-        //                 checkAndUnlink(`./db/${universalName}1.mp4`);
-        //                 checkAndUnlink(`./db/${universalName}.mp4`);
-        //                 checkAndUnlink(`./db/${universalName}.vtt`);
-        //                 // await globalThis.ytReplied.delete(true);
-        //               })
-        //               .catch(async (err) => {
-        //                 console.log("Sending audio", err);
-        //                 msgForID.react("❌");
-        //                 await client.sendMessage(toChat, "Try again");
-        //                 checkAndUnlink(`./db/${universalName}.mkv`);
-        //                 checkAndUnlink(`./db/${universalName}1.mp4`);
-        //                 checkAndUnlink(`./db/${universalName}.mp4`);
-        //                 checkAndUnlink(`./db/${universalName}.vtt`);
-        //               });
-        //           })
-        //           .run();
-        //       }
-        //     );
-        //   } else {
-        //     const mp4 = await MessageMedia.fromFilePath(
-        //       `./db/${universalName}.mp4`
-        //     );
-        //     mp4.filename = `${title}.mp4`;
-        //     await client
-        //       .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
-        //       .then(async (sent) => {
-        //         sent.react("✅");
-        //         msgForID.react("✅");
-        //         checkAndUnlink(`./db/${universalName}.mkv`);
-        //         checkAndUnlink(`./db/${universalName}.mp4`);
-        //         checkAndUnlink(`./db/${universalName}.vtt`);
-        //         // await globalThis.ytReplied.delete(true);
-        //       })
-        //       .catch(async (err) => {
-        //         console.log("Sending audio", err);
-        //         msgForID.react("❌");
-        //         await client.sendMessage(toChat, "Try again");
-        //         checkAndUnlink(`./db/${universalName}.mkv`);
-        //         checkAndUnlink(`./db/${universalName}.mp4`);
-        //         checkAndUnlink(`./db/${universalName}.vtt`);
-        //       });
-        //   }
-        // } else {
-        //   const mp4 = MessageMedia.fromFilePath(`./db/${universalName}.mp4`);
-        //   mp4.filename = `${title}.mp4`;
-        //   await client
-        //     .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
-        //     .then(async (sent) => {
-        //       sent.react("✅");
-        //       msgForID.react("✅");
-        //       checkAndUnlink(`./db/${universalName}.mkv`);
-        //       checkAndUnlink(`./db/${universalName}.mp4`);
-        //       checkAndUnlink(`./db/${universalName}.vtt`);
-        //       // await globalThis.ytReplied.delete(true);
-        //     })
-        //     .catch(async (err) => {
-        //       console.log("Sending audio", err);
-        //       msgForID.react("❌");
-        //       await client.sendMessage(toChat, "Try again");
-        //       checkAndUnlink(`./db/${universalName}.mkv`);
-        //       checkAndUnlink(`./db/${universalName}.mp4`);
-        //       checkAndUnlink(`./db/${universalName}.vtt`);
-        //     });
-        // }
+        if (tracks && tracks.length) {
+          const track = tracks.find((t) => t.languageCode === "en");
+          if (track) {
+            const output = `${info.videoDetails.title}.${track.languageCode}.${format}`;
+            fs.writeFileSync(`./db/${universalName}.vtt`, "");
+            fs.writeFileSync(`./db/${universalName}1.mp4`, "");
+            download(
+              `${track.baseUrl}&fmt=${format}`,
+              `./db/${universalName}.vtt`,
+              function () {
+                ffmpeg(`./db/${universalName}.mp4`)
+                  .inputFormat("mp4")
+                  .input(`./db/${universalName}.vtt`)
+                  .outputOptions(
+                    "-c:v",
+                    "copy",
+                    "-c:a",
+                    "copy",
+                    "-c:s",
+                    "mov_text",
+                    "-metadata:s:s:0",
+                    "language=eng",
+                    "-metadata:s:s:0",
+                    'title="English"',
+                    "-disposition:s:0",
+                    "forced"
+                  )
+                  .output(`./db/${universalName}1.mp4`)
+                  .on("error", (error, stdout, stderr) => {
+                    console.error(
+                      `Failed to merge video and subtitles: ${error}`
+                    );
+                  })
+                  .on("end", async () => {
+                    const mp4 = await MessageMedia.fromFilePath(
+                      `./db/${universalName}1.mp4`
+                    );
+                    mp4.filename = `${title}.mp4`;
+                    await client
+                      .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
+                      .then(async (sent) => {
+                        sent.react("✅");
+                        msgForID.react("✅");
+                        checkAndUnlink(`./db/${universalName}.mkv`);
+                        checkAndUnlink(`./db/${universalName}1.mp4`);
+                        checkAndUnlink(`./db/${universalName}.mp4`);
+                        checkAndUnlink(`./db/${universalName}.vtt`);
+                        // await globalThis.ytReplied.delete(true);
+                      })
+                      .catch(async (err) => {
+                        console.log("Sending audio", err);
+                        msgForID.react("❌");
+                        await client.sendMessage(toChat, "Try again");
+                        checkAndUnlink(`./db/${universalName}.mkv`);
+                        checkAndUnlink(`./db/${universalName}1.mp4`);
+                        checkAndUnlink(`./db/${universalName}.mp4`);
+                        checkAndUnlink(`./db/${universalName}.vtt`);
+                      });
+                  })
+                  .run();
+              }
+            );
+          } else {
+              const mp4 = await MessageMedia.fromFilePath(
+                `./db/${universalName}.mp4`
+              );
+              mp4.filename = `${title}.mp4`;
+              await client
+                .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
+                .then(async (sent) => {
+                  sent.react("✅");
+                  msgForID.react("✅");
+                  checkAndUnlink(`./db/${universalName}.mkv`);
+                  checkAndUnlink(`./db/${universalName}.mp4`);
+                  checkAndUnlink(`./db/${universalName}.vtt`);
+                  // await globalThis.ytReplied.delete(true);
+                })
+                .catch(async (err) => {
+                  console.log("Sending audio", err);
+                  msgForID.react("❌");
+                  await client.sendMessage(toChat, "Try again");
+                  checkAndUnlink(`./db/${universalName}.mkv`);
+                  checkAndUnlink(`./db/${universalName}.mp4`);
+                  checkAndUnlink(`./db/${universalName}.vtt`);
+                });
+          }
+        } else {
+            const mp4 = await MessageMedia.fromFilePath(
+              `./db/${universalName}.mp4`
+            );
+            mp4.filename = `${title}.mp4`;
+            await client
+              .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
+              .then(async (sent) => {
+                sent.react("✅");
+                msgForID.react("✅");
+                checkAndUnlink(`./db/${universalName}.mkv`);
+                checkAndUnlink(`./db/${universalName}.mp4`);
+                checkAndUnlink(`./db/${universalName}.vtt`);
+                // await globalThis.ytReplied.delete(true);
+              })
+              .catch(async (err) => {
+                console.log("Sending audio", err);
+                msgForID.react("❌");
+                await client.sendMessage(toChat, "Try again");
+                checkAndUnlink(`./db/${universalName}.mkv`);
+                checkAndUnlink(`./db/${universalName}.mp4`);
+                checkAndUnlink(`./db/${universalName}.vtt`);
+              });
+        }
       });
     });
 

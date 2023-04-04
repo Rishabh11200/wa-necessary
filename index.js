@@ -8,16 +8,28 @@ const { deleteExpiredObjects } = require("./src/openai");
 process.on("uncaughtException", async (reason) => console.log(reason));
 process.on("unhandledRejection", async (reason) => console.log(reason));
 
-const client = new Client({
-  authStrategy: new LocalAuth({
-    clientId: "client-one",
-  }),
-  puppeteer: {
-    headless: false,
-    executablePath:
-      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-  },
-});
+let client;
+if (process.platform === "win32") {
+  client = new Client({
+    authStrategy: new LocalAuth({
+      clientId: "client-one",
+    }),
+    puppeteer: {
+      headless: false,
+      executablePath:
+        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    },
+  });
+} else {
+  client = new Client({
+    authStrategy: new LocalAuth({
+      clientId: "client-one",
+    }),
+    puppeteer: {
+      headless: false,
+    },
+  });
+}
 
 client.initialize();
 

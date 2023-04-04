@@ -91,10 +91,10 @@ const onMessage = async (msg, client) => {
       globalThis.ytReplied = msg;
     });
   }
+  // after fix L.no(97) -> || msg.body.toString().toLowerCase().startsWith("video")
   if (
     msg.hasQuotedMsg &&
-    (msg.body.toString().toLowerCase().startsWith("audio") ||
-      msg.body.toString().toLowerCase().startsWith("video"))
+    msg.body.toString().toLowerCase().startsWith("audio")
   ) {
     const quotedLink = await msg.getQuotedMessage();
     const msgLow = msg.body.toString().toLowerCase();
@@ -111,14 +111,14 @@ const onMessage = async (msg, client) => {
           msg
         );
       }
-      if (msgLow === "video") {
-        await onVideo(
-          quotedLink.body.toString(),
-          client,
-          chatID.id._serialized,
-          msg
-        );
-      }
+      // if (msgLow === "video") {
+      //   await onVideo(
+      //     quotedLink.body.toString(),
+      //     client,
+      //     chatID.id._serialized,
+      //     msg
+      //   );
+      // }
     }
   }
 };
