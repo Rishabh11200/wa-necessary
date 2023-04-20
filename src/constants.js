@@ -10,7 +10,9 @@ const helpMsg = (userName) => {
     "\n  To use Youtube command: " +
     "\n    i: _!yt some.youtube.link_ " +
     "\n   ii: _!yt audio_" +
-    "\n\n_5._*!help*: To get this message." +
+    "\n\n_5._*!suggest <Word>*: To get the prompt suggestion for chat gpt." +
+    "\n\n_6._*!allprompts*: to get all possible prompts generation and send the name with _!suggest_ command." +
+    "\n\n_7._*!help*: To get this message." +
     "\n\n```-> Note:``` You can use any one these character to command *_['!', '.', '_', '#']_*.";
   return msg;
 };
@@ -31,6 +33,8 @@ module.exports = {
   ],
   sticker: ["!sticker", ".sticker", "_sticker", "#sticker"],
   yt: ["!yt", ".yt", "_yt", "#yt"],
+  suggest: ["!suggest", ".suggest", "_suggest", "#suggest"],
+  allprompts: ["!allprompts", ".allprompts", "_allprompts", "#allprompts"],
   ytMiniHelp,
   helpMsg,
 };

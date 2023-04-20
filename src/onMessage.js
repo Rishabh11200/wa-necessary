@@ -15,10 +15,13 @@ const {
   ytMiniHelp,
   yt,
   image,
+  allprompts,
+  suggest,
 } = require("./constants");
 const { openAIfunc, imageFunction } = require("./openai");
 const ytdl = require("ytdl-core");
 const { onAudio, onVideo } = require("./yt");
+const { callPrompts, allActs } = require("./prompts");
 /**
  * @type {Message}
  */
@@ -137,7 +140,29 @@ const onMessage = async (msg, client) => {
       );
     }
   }
-
+  if (checkStartCMD(suggest, msg.body)) {
+    let act = removeStartCMD(suggest, msg.body.toString());
+    if (act.length > 0) {
+      callPrompts(act).then((data) => {
+        msg.react("🔮");
+        if (data.toString().includes("!allprompts")) {
+          setTimeout(() => {
+            msg.react("❌");
+          }, 200);
+        }
+        msg.reply(data);
+      });
+    } else {
+      msg.react("❌");
+      msg.reply("Add the word to get the suggestions...");
+    }
+  }
+  if (checkStartCMD(allprompts, msg.body)) {
+    allActs().then((data) => {
+      msg.react("✅");
+      msg.reply(data);
+    });
+  }
   if (ytdl.validateURL(msg.body.toString())) {
     msg.react("🔮");
     await client.sendMessage(chatID.id._serialized, ytMiniHelp).then((msg) => {
