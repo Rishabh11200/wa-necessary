@@ -1,10 +1,27 @@
-const { Message, Client } = require("whatsapp-web.js");
-const { checkStartCMD, removeStartCMD, checkSysMsg } = require("./utlis");
-const { chat, help, helpMsg, sticker, ytMiniHelp, yt } = require("./constants");
-const { openAIfunc } = require("./openai");
+const { Message, Client, MessageMedia } = require("whatsapp-web.js");
+const {
+  checkStartCMD,
+  removeStartCMD,
+  checkSysMsg,
+  download,
+  generateRandomSixDigitNumber,
+  checkAndUnlink,
+} = require("./utlis");
+const {
+  chat,
+  help,
+  helpMsg,
+  sticker,
+  ytMiniHelp,
+  yt,
+  image,
+} = require("./constants");
+const { openAIfunc, imageFunction } = require("./openai");
 const ytdl = require("ytdl-core");
 const { onAudio, onVideo } = require("./yt");
-
+/**
+ * @type {Message}
+ */
 globalThis.ytReplied = null;
 /**
  * @param {Message} msg
@@ -84,6 +101,43 @@ const onMessage = async (msg, client) => {
     msg.react("❌");
     msg.reply("Please reply to any media(Image/Video/Audio)");
   }
+  if (checkStartCMD(image, msg.body)) {
+    const fileName = `./db/${generateRandomSixDigitNumber()}.png`;
+    let query = removeStartCMD(image, msg.body.toLowerCase());
+    if (query.length > 0) {
+      msg.react("🔮");
+      let imgUrl = await imageFunction(query);
+      if (imgUrl.toString().startsWith("http")) {
+        download(imgUrl, fileName, async () => {
+          msg.react("⬆️");
+          const imageFile = await MessageMedia.fromFilePath(fileName);
+          imageFile.filename = "Generated_image.png";
+          await client
+            .sendMessage(chatID.id._serialized, imageFile, {
+              sendMediaAsDocument: true,
+            })
+            .then(async (sent) => {
+              sent.react("✅");
+              msg.react("✅");
+              checkAndUnlink(fileName);
+            });
+        });
+      } else {
+        msg.react("❌");
+        await client.sendMessage(
+          chatID.id._serialized,
+          `Error generating image: ⚠️ ${JSON.stringify(imgUrl)}`
+        );
+      }
+    } else {
+      msg.react("⚠️");
+      await client.sendMessage(
+        chatID.id._serialized,
+        "Please add prompt to generate image..."
+      );
+    }
+  }
+
   if (ytdl.validateURL(msg.body.toString())) {
     msg.react("🔮");
     await client.sendMessage(chatID.id._serialized, ytMiniHelp).then((msg) => {
@@ -101,7 +155,7 @@ const onMessage = async (msg, client) => {
     if (ytdl.validateURL(quotedLink.body.toString())) {
       msg.react("⏬");
       if (globalThis.ytReplied) {
-        globalThis.ytReplied.react("⏬");
+        globalThis.ytReplied.delete(true);
       }
       if (msgLow === "audio") {
         await onAudio(

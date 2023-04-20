@@ -182,8 +182,6 @@ const onAudio = async (ytLink, client, toChat, msgForID) => {
 const onVideo = async (ytLink, client, toChat, msgForID) => {
   const universalName = msgForID.id.id;
   try {
-    // const ytLink = "https://youtu.be/S9bCLPwzSC0";
-    // const ytLink = "https://youtu.be/g6fnFALEseI";
     const tracker = {
       start: Date.now(),
       audio: { downloaded: 0, total: Infinity },

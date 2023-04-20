@@ -56,10 +56,15 @@ function checkAndUnlink(path) {
   }
 }
 
+function generateRandomSixDigitNumber() {
+  return Math.floor(100000 + Math.random() * 900000);
+}
+
 module.exports = {
   removeStartCMD,
   checkStartCMD,
   checkSysMsg,
   download,
   checkAndUnlink,
+  generateRandomSixDigitNumber,
 };

@@ -43,6 +43,27 @@ const openAIfunc = async (query, singleChatID, sysMsg = null) => {
   return `${response.content} \n\n_Thanks for using *YARRS-GPT*_`;
 };
 
+const imageFunction = async (query) => {
+  try {
+    const response = await openaiConfigs.createImage({
+      prompt: query,
+      n: 1,
+      size: "1024x1024",
+    });
+    const image_url = response.data.data[0].url;
+    return image_url;
+  } catch (error) {
+    if (error.response) {
+      console.log(error.response.status);
+      console.log(error.response.data);
+      return { res: error.response.data, status: error.response.status };
+    } else {
+      console.log(error.message);
+      return error.message;
+    }
+  }
+};
+
 function deleteExpiredObjects() {
   let now = new Date().getTime();
   for (let key in allChats) {
@@ -63,4 +84,4 @@ function deleteExpiredObjects() {
   return allChats;
 }
 
-module.exports = { openAIfunc, deleteExpiredObjects };
+module.exports = { openAIfunc, deleteExpiredObjects, imageFunction };
