@@ -16,7 +16,7 @@ function removeStartCMD(wordArr, main) {
     )
     .replace(/\s+/g, " ")
     .trim();
-  return final.trim();
+  return final.trim().toString();
 }
 
 function checkSysMsg(str) {

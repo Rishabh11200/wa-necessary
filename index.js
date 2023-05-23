@@ -4,6 +4,7 @@ const qrcode = require("qrcode-terminal");
 const { onMessage } = require("./src/onMessage");
 const { Client, LocalAuth, Message } = require("whatsapp-web.js");
 const { deleteExpiredObjects } = require("./src/openai");
+const { allActs } = require("./src/prompts");
 
 process.on("uncaughtException", async (reason) => console.log(reason));
 process.on("unhandledRejection", async (reason) => console.log(reason));
@@ -13,6 +14,8 @@ let clientExecutablePath;
 if (process.platform === "win32") {
   clientExecutablePath =
     "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+} else if(process.platform === "darwin") {
+  clientExecutablePath = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
 } else {
   clientExecutablePath = "/usr/bin/google-chrome-stable";
 }
