@@ -1,27 +1,15 @@
-const { Message, Client, MessageMedia } = require("whatsapp-web.js");
+const { Message, Client } = require("whatsapp-web.js");
 const {
   checkStartCMD,
-  removeStartCMD,
-  checkSysMsg,
-  download,
-  generateRandomSixDigitNumber,
-  checkAndUnlink,
 } = require("./utlis");
 const {
-  chat,
   help,
   helpMsg,
   sticker,
   ytMiniHelp,
-  yt,
-  image,
-  allprompts,
-  suggest,
 } = require("./constants");
-const { openAIfunc, imageFunction } = require("./openai");
 const ytdl = require("ytdl-core");
-const { onAudio, onVideo } = require("./yt");
-const { callPrompts, allActs } = require("./prompts");
+const { onAudio } = require("./yt");
 /**
  * @type {Message}
  */
@@ -34,52 +22,8 @@ const onMessage = async (msg, client) => {
   let userName = msg.rawData.notifyName ?? "Whatsapp user";
   let chatID = await msg.getChat();
   if (checkStartCMD(help, msg.body)) {
-    msg.react("📒");
+    msg.react("🧐");
     msg.reply(helpMsg(userName));
-  }
-  if (checkStartCMD(chat, msg.body)) {
-    let query = removeStartCMD(chat, msg.body.toString().toLowerCase());
-    let finalQuery = checkSysMsg(query.toString());
-    msg.react("🤔");
-    if (query.length > 0) {
-      let chatGptUserID, response;
-      if (msg.id.participant) {
-        chatGptUserID = `${msg.id.remote}${msg.id.participant}`;
-      } else {
-        chatGptUserID = `${msg.id.remote}`;
-      }
-      if (finalQuery.systemMsg) {
-        if (!finalQuery.query) {
-          msg.reply("Please add query with system message to think...");
-          setTimeout(() => {
-            msg.react("❌");
-          }, 200);
-        } else {
-          setTimeout(() => {
-            msg.react("⏳");
-          }, 2000);
-          response = await openAIfunc(
-            finalQuery.query,
-            chatGptUserID,
-            finalQuery.systemMsg
-          );
-        }
-      } else {
-        setTimeout(() => {
-          msg.react("⏳");
-        }, 2000);
-        response = await openAIfunc(finalQuery.query, chatGptUserID);
-      }
-      await client.sendMessage(chatID.id._serialized, response);
-      setTimeout(() => {
-        msg.react("✅");
-      }, 200);
-    } else {
-      msg.reply("Please add prompt to think...");
-      setTimeout(() => {
-        msg.react("❌");
-      }, 200);
-    }
   }
   if (msg.hasQuotedMsg && checkStartCMD(sticker, msg.body)) {
     let quotedMedia = await msg.getQuotedMessage();
@@ -103,65 +47,6 @@ const onMessage = async (msg, client) => {
   if (!msg.hasQuotedMsg && checkStartCMD(sticker, msg.body)) {
     msg.react("❌");
     msg.reply("Please reply to any media(Image/Video/Audio)");
-  }
-  if (checkStartCMD(image, msg.body)) {
-    const fileName = `./db/${generateRandomSixDigitNumber()}.png`;
-    let query = removeStartCMD(image, msg.body.toLowerCase());
-    if (query.length > 0) {
-      msg.react("🔮");
-      let imgUrl = await imageFunction(query);
-      if (imgUrl.toString().startsWith("http")) {
-        download(imgUrl, fileName, async () => {
-          msg.react("⬆️");
-          const imageFile = await MessageMedia.fromFilePath(fileName);
-          imageFile.filename = "Generated_image.png";
-          await client
-            .sendMessage(chatID.id._serialized, imageFile, {
-              sendMediaAsDocument: true,
-            })
-            .then(async (sent) => {
-              sent.react("✅");
-              msg.react("✅");
-              checkAndUnlink(fileName);
-            });
-        });
-      } else {
-        msg.react("❌");
-        await client.sendMessage(
-          chatID.id._serialized,
-          `Error generating image: ⚠️ ${JSON.stringify(imgUrl)}`
-        );
-      }
-    } else {
-      msg.react("⚠️");
-      await client.sendMessage(
-        chatID.id._serialized,
-        "Please add prompt to generate image..."
-      );
-    }
-  }
-  if (checkStartCMD(suggest, msg.body)) {
-    let act = removeStartCMD(suggest, msg.body.toString());
-    if (act.length > 0) {
-      callPrompts(act).then((data) => {
-        msg.react("🔮");
-        if (data.toString().includes("!allprompts")) {
-          setTimeout(() => {
-            msg.react("❌");
-          }, 200);
-        }
-        msg.reply(data);
-      });
-    } else {
-      msg.react("❌");
-      msg.reply("Add the word to get the suggestions...");
-    }
-  }
-  if (checkStartCMD(allprompts, msg.body)) {
-    allActs().then((data) => {
-      msg.react("✅");
-      msg.reply(data);
-    });
   }
   if (ytdl.validateURL(msg.body.toString())) {
     msg.react("🔮");
