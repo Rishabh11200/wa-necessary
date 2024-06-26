@@ -3,8 +3,6 @@ const fs = require("fs");
 const qrcode = require("qrcode-terminal");
 const { onMessage } = require("./src/onMessage");
 const { Client, LocalAuth, Message } = require("whatsapp-web.js");
-const { deleteExpiredObjects } = require("./src/openai");
-const { allActs } = require("./src/prompts");
 
 process.on("uncaughtException", async (reason) => console.log(reason));
 process.on("unhandledRejection", async (reason) => console.log(reason));
@@ -14,8 +12,9 @@ let clientExecutablePath;
 if (process.platform === "win32") {
   clientExecutablePath =
     "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
-} else if(process.platform === "darwin") {
-  clientExecutablePath = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
+} else if (process.platform === "darwin") {
+  clientExecutablePath =
+    "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
 } else {
   clientExecutablePath = "/usr/bin/google-chrome-stable";
 }
@@ -26,6 +25,7 @@ const client = new Client({
   puppeteer: {
     headless: false,
     executablePath: clientExecutablePath,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
 });
 
@@ -55,5 +55,3 @@ client.on("disconnected", async (reason) => {
   console.log("Disconnected", reason);
   await fs.rm("./.wwebjs_auth/", { recursive: true, force: true });
 });
-
-setInterval(deleteExpiredObjects, 60000); // 1 minute

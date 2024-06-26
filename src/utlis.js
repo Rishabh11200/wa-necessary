@@ -19,26 +19,6 @@ function removeStartCMD(wordArr, main) {
   return final.trim().toString();
 }
 
-function checkSysMsg(str) {
-  const regex = /\(([^)]+)\)/;
-  const regexN = /\([^)]+\)/g;
-  const match = str.match(regex);
-  let systemMsg, query;
-  if (match) {
-    systemMsg = match[1];
-    let tempArr = str.split(regexN);
-    let tempStr = tempArr.join("");
-    let newStr = tempStr.replace(/\s{2,}/g, " ");
-    query = newStr.trim();
-  } else {
-    query = str;
-  }
-  return {
-    systemMsg,
-    query,
-  };
-}
-
 function checkStartCMD(arr, string) {
   let str = string.toString().toLowerCase();
   return arr.some((word) => str.startsWith(word));
@@ -63,7 +43,6 @@ function generateRandomSixDigitNumber() {
 module.exports = {
   removeStartCMD,
   checkStartCMD,
-  checkSysMsg,
   download,
   checkAndUnlink,
   generateRandomSixDigitNumber,
