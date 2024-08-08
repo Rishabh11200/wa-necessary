@@ -23,7 +23,7 @@ const client = new Client({
     clientId: "client-one",
   }),
   puppeteer: {
-    headless: false,
+    headless: true,
     executablePath: clientExecutablePath,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
@@ -31,7 +31,7 @@ const client = new Client({
 
 client.initialize();
 
-if (!fs.existsSync("./.wwebjs_auth/")) {
+if (!fs.existsSync("./.wwebjs_cache")) {
   client.on("qr", (qr) => {
     qrcode.generate(qr, { small: true });
   });
@@ -51,7 +51,7 @@ client.on("message_create", async (msg) => {
   onMessage(msg, client);
 });
 
-client.on("disconnected", async (reason) => {
+client.on("disconnected",(reason) => {
   console.log("Disconnected", reason);
-  await fs.rm("./.wwebjs_auth/", { recursive: true, force: true });
+  fs.rmSync("./.wwebjs_cache/", { recursive: true, force: true });
 });
