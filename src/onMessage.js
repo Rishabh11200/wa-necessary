@@ -8,7 +8,7 @@ const {
   sticker,
   ytMiniHelp,
 } = require("./constants");
-const ytdl = require("ytdl-core");
+const ytdl = require("@distube/ytdl-core");
 const { onAudio } = require("./yt");
 /**
  * @type {Message}

@@ -2,7 +2,7 @@ const ffmpeg = require("fluent-ffmpeg");
 const ffmpegForVideo = require("ffmpeg-static");
 const fs = require("fs");
 const { Client, Message, MessageMedia } = require("whatsapp-web.js");
-const ytdl = require("ytdl-core");
+const ytdl = require("@distube/ytdl-core");
 const { download, checkAndUnlink } = require("./utlis");
 const cp = require("child_process");
 
