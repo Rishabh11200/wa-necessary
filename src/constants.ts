@@ -1,7 +1,7 @@
-const helpMsg = (userName) => {
+export const helpMsg = (userName: string): string => {
   const msg =
     `_Hey ${userName}_,` +
-    "\nThanks for reaching *YARRS-GPT*" +
+    "\nThanks for reaching *YARRS-BOT*" +
     "\n\nFeatures:" +
     "\n\n_1._*!sticker* ```(reply to any media)```: To convert Video/GIF/Image to sticker" +
     "\n\n_2._*!yt <video url> or preferred format* (_after sending the url_): To download _youtube_ video as audio." +
@@ -12,12 +12,8 @@ const helpMsg = (userName) => {
     "\n\n```-> Note:``` You can use any one these character to command *_['!', '.', '_', '#']_*.";
   return msg;
 };
-const ytMiniHelp = "Reply to youtube link: *Audio*_?_👆🏻🤔💭"; // Add when fixed - / *Video*
 
-module.exports = {
-  help: ["!help", ".help", "_help", "#help"],
-  sticker: ["!sticker", ".sticker", "_sticker", "#sticker"],
-  yt: ["!yt", ".yt", "_yt", "#yt"],
-  ytMiniHelp,
-  helpMsg,
-};
+export const ytMiniHelp: string = "Reply to youtube link: *Audio*_?_👆🏻🤔💭"; // Add when fixed - / *Video*
+
+export const help = ["!help", ".help", "_help", "#help"];
+export const sticker = ["!sticker", ".sticker", "_sticker", "#sticker"];

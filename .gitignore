@@ -103,9 +103,12 @@ dist
 # TernJS port file
 .tern-port
 
-# whatsapp ignore
+# Whatsapp ignore
 .wwebjs_auth/
 
 # Remove lock files
 yarn.lock
 package-lock.json
+
+# Don't include DB folder
+db/

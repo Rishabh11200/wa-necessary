@@ -1,30 +1,23 @@
-const { Message, Client } = require("whatsapp-web.js");
-const {
-  checkStartCMD,
-} = require("./utlis");
-const {
-  help,
-  helpMsg,
-  sticker,
-  ytMiniHelp,
-} = require("./constants");
-const ytdl = require("@distube/ytdl-core");
-const { onAudio } = require("./yt");
-/**
- * @type {Message}
- */
+import { Message, Client } from "whatsapp-web.js";
+import { checkStartCMD } from "@/utils";
+import { help, helpMsg, sticker, ytMiniHelp } from "@/constants";
+import ytdl from "@distube/ytdl-core";
+import { onAudio } from "@/yt";
+
+declare global {
+  var ytReplied: Message | null;
+}
 globalThis.ytReplied = null;
-/**
- * @param {Message} msg
- * @param {Client} client
- */
-const onMessage = async (msg, client) => {
-  let userName = msg.rawData.notifyName ?? "Whatsapp user";
+
+const onMessage = async (msg: Message, client: Client) => {
+  let userName: string = (msg.rawData as any)?.notifyName ?? "Whatsapp user";
   let chatID = await msg.getChat();
+
   if (checkStartCMD(help, msg.body)) {
     msg.react("🧐");
     msg.reply(helpMsg(userName));
   }
+
   if (msg.hasQuotedMsg && checkStartCMD(sticker, msg.body)) {
     let quotedMedia = await msg.getQuotedMessage();
     quotedMedia.react("⏳");
@@ -44,18 +37,22 @@ const onMessage = async (msg, client) => {
       }, 200);
     }
   }
+
   if (!msg.hasQuotedMsg && checkStartCMD(sticker, msg.body)) {
     msg.react("❌");
     msg.reply("Please reply to any media(Image/Video/Audio)");
   }
+
   if (ytdl.validateURL(msg.body.toString())) {
     msg.react("🔮");
-    await client.sendMessage(chatID.id._serialized, ytMiniHelp).then((msg) => {
-      msg.react("⏳");
-      globalThis.ytReplied = msg;
-    });
+    await client
+      .sendMessage(chatID.id._serialized, ytMiniHelp)
+      .then((sentMsg) => {
+        sentMsg.react("⏳");
+        globalThis.ytReplied = sentMsg;
+      });
   }
-  // after fix L.no(97) -> || msg.body.toString().toLowerCase().startsWith("video")
+
   if (
     msg.hasQuotedMsg &&
     msg.body.toString().toLowerCase().startsWith("audio")
@@ -75,18 +72,8 @@ const onMessage = async (msg, client) => {
           msg
         );
       }
-      // if (msgLow === "video") {
-      //   await onVideo(
-      //     quotedLink.body.toString(),
-      //     client,
-      //     chatID.id._serialized,
-      //     msg
-      //   );
-      // }
     }
   }
 };
 
-module.exports = {
-  onMessage,
-};
+export default onMessage;

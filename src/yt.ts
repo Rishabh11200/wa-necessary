@@ -1,19 +1,17 @@
-const ffmpeg = require("fluent-ffmpeg");
-const ffmpegForVideo = require("ffmpeg-static");
-const fs = require("fs");
-const { Client, Message, MessageMedia } = require("whatsapp-web.js");
-const ytdl = require("@distube/ytdl-core");
-const { download, checkAndUnlink } = require("./utlis");
-const cp = require("child_process");
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegForVideo from "ffmpeg-static";
+import fs from "fs";
+import { Client, Message, MessageMedia } from "whatsapp-web.js";
+import ytdl from "@distube/ytdl-core";
+import { download, checkAndUnlink } from "@/utils";
+import cp from "child_process";
 
-/**
- *
- * @param {string} ytLink
- * @param {Client} client
- * @param {Message} toChat
- * @param {Message} msgForID
- */
-const onAudio = async (ytLink, client, toChat, msgForID) => {
+export const onAudio = async (
+  ytLink: string,
+  client: Client,
+  toChat: string,
+  msgForID: Message
+) => {
   const universalName = msgForID.id.id;
   try {
     let thumbnailDownloaded = false;
@@ -23,8 +21,7 @@ const onAudio = async (ytLink, client, toChat, msgForID) => {
     fs.writeFileSync(`./db/${universalName}1.mp3`, "");
     const audioStream = ytdl(ytLink, {
       filter: "audioonly",
-      format: "mp3",
-      quality: "highest",
+      quality: "highestaudio",
     });
     const metadata = {
       title:
@@ -74,7 +71,7 @@ const onAudio = async (ytLink, client, toChat, msgForID) => {
             ])
             .output(`./db/${universalName}1.mp3`)
             .on("end", async () => {
-              const mp3 = await MessageMedia.fromFilePath(
+              const mp3 = MessageMedia.fromFilePath(
                 `./db/${universalName}1.mp3`
               );
               mp3.filename = `${title}.mp3`;
@@ -124,7 +121,7 @@ const onAudio = async (ytLink, client, toChat, msgForID) => {
             ])
             .output(`./db/${universalName}1.mp3`)
             .on("end", async () => {
-              const mp3 = await MessageMedia.fromFilePath(
+              const mp3 = MessageMedia.fromFilePath(
                 `./db/${universalName}1.mp3`
               );
               mp3.filename = title;
@@ -172,14 +169,12 @@ const onAudio = async (ytLink, client, toChat, msgForID) => {
   }
 };
 
-/**
- *
- * @param {string} ytLink
- * @param {Client} client
- * @param {Message} toChat
- * @param {Message} msgForID
- */
-const onVideo = async (ytLink, client, toChat, msgForID) => {
+export const onVideo = async (
+  ytLink: string,
+  client: Client,
+  toChat: Message,
+  msgForID: Message
+) => {
   const universalName = msgForID.id.id;
   try {
     const tracker = {
@@ -203,7 +198,7 @@ const onVideo = async (ytLink, client, toChat, msgForID) => {
     );
 
     const ffmpegProcess = cp.spawn(
-      ffmpegForVideo,
+      ffmpegForVideo as string,
       [
         "-loglevel",
         "8",
@@ -229,7 +224,7 @@ const onVideo = async (ytLink, client, toChat, msgForID) => {
     );
 
     ffmpegProcess.on("close", () => {
-      const convertProcess = cp.spawn(ffmpegForVideo, [
+      const convertProcess = cp.spawn(ffmpegForVideo as string, [
         "-i",
         `./db/${universalName}.mkv`,
         "-c",
@@ -281,12 +276,14 @@ const onVideo = async (ytLink, client, toChat, msgForID) => {
                     );
                   })
                   .on("end", async () => {
-                    const mp4 = await MessageMedia.fromFilePath(
+                    const mp4 = MessageMedia.fromFilePath(
                       `./db/${universalName}1.mp4`
                     );
                     mp4.filename = `${title}.mp4`;
                     await client
-                      .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
+                      .sendMessage(toChat.id.id, mp4, {
+                        sendMediaAsDocument: true,
+                      })
                       .then(async (sent) => {
                         sent.react("✅");
                         msgForID.react("✅");
@@ -299,7 +296,7 @@ const onVideo = async (ytLink, client, toChat, msgForID) => {
                       .catch(async (err) => {
                         console.log("Sending audio", err);
                         msgForID.react("❌");
-                        await client.sendMessage(toChat, "Try again");
+                        await client.sendMessage(toChat.id.id, "Try again");
                         checkAndUnlink(`./db/${universalName}.mkv`);
                         checkAndUnlink(`./db/${universalName}1.mp4`);
                         checkAndUnlink(`./db/${universalName}.mp4`);
@@ -310,36 +307,10 @@ const onVideo = async (ytLink, client, toChat, msgForID) => {
               }
             );
           } else {
-              const mp4 = await MessageMedia.fromFilePath(
-                `./db/${universalName}.mp4`
-              );
-              mp4.filename = `${title}.mp4`;
-              await client
-                .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
-                .then(async (sent) => {
-                  sent.react("✅");
-                  msgForID.react("✅");
-                  checkAndUnlink(`./db/${universalName}.mkv`);
-                  checkAndUnlink(`./db/${universalName}.mp4`);
-                  checkAndUnlink(`./db/${universalName}.vtt`);
-                  // await globalThis.ytReplied.delete(true);
-                })
-                .catch(async (err) => {
-                  console.log("Sending audio", err);
-                  msgForID.react("❌");
-                  await client.sendMessage(toChat, "Try again");
-                  checkAndUnlink(`./db/${universalName}.mkv`);
-                  checkAndUnlink(`./db/${universalName}.mp4`);
-                  checkAndUnlink(`./db/${universalName}.vtt`);
-                });
-          }
-        } else {
-            const mp4 = await MessageMedia.fromFilePath(
-              `./db/${universalName}.mp4`
-            );
+            const mp4 = MessageMedia.fromFilePath(`./db/${universalName}.mp4`);
             mp4.filename = `${title}.mp4`;
             await client
-              .sendMessage(toChat, mp4, { sendMediaAsDocument: true })
+              .sendMessage(toChat.id.id, mp4, { sendMediaAsDocument: true })
               .then(async (sent) => {
                 sent.react("✅");
                 msgForID.react("✅");
@@ -351,32 +322,50 @@ const onVideo = async (ytLink, client, toChat, msgForID) => {
               .catch(async (err) => {
                 console.log("Sending audio", err);
                 msgForID.react("❌");
-                await client.sendMessage(toChat, "Try again");
+                await client.sendMessage(toChat.id.id, "Try again");
                 checkAndUnlink(`./db/${universalName}.mkv`);
                 checkAndUnlink(`./db/${universalName}.mp4`);
                 checkAndUnlink(`./db/${universalName}.vtt`);
               });
+          }
+        } else {
+          const mp4 = MessageMedia.fromFilePath(`./db/${universalName}.mp4`);
+          mp4.filename = `${title}.mp4`;
+          await client
+            .sendMessage(toChat.id.id, mp4, { sendMediaAsDocument: true })
+            .then(async (sent) => {
+              sent.react("✅");
+              msgForID.react("✅");
+              checkAndUnlink(`./db/${universalName}.mkv`);
+              checkAndUnlink(`./db/${universalName}.mp4`);
+              checkAndUnlink(`./db/${universalName}.vtt`);
+              // await globalThis.ytReplied.delete(true);
+            })
+            .catch(async (err) => {
+              console.log("Sending audio", err);
+              msgForID.react("❌");
+              await client.sendMessage(toChat.id.id, "Try again");
+              checkAndUnlink(`./db/${universalName}.mkv`);
+              checkAndUnlink(`./db/${universalName}.mp4`);
+              checkAndUnlink(`./db/${universalName}.vtt`);
+            });
         }
       });
     });
 
-    ffmpegProcess.stdio[3].on("data", (chunk) => {
+    ffmpegProcess.stdio[3]?.on("data", (chunk) => {
       const lines = chunk.toString().trim().split("\n");
-      const args = {};
+      const args: { [key: string]: string } = {};
       for (const l of lines) {
         const [key, value] = l.split("=");
         args[key.trim()] = value.trim();
       }
-      tracker.merged = args;
+      tracker.merged = args as any;
     });
 
-    audio.pipe(ffmpegProcess.stdio[4]);
-    video.pipe(ffmpegProcess.stdio[5]);
+    audio.pipe(ffmpegProcess.stdio[3] as NodeJS.WritableStream);
+    video.pipe(ffmpegProcess.stdio[4] as NodeJS.WritableStream);
   } catch (error) {
     console.log("YT video: ", error);
   }
-};
-module.exports = {
-  onAudio,
-  onVideo,
 };
