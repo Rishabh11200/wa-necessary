@@ -1,10 +1,11 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import fs from "fs";
 import qrcode from "qrcode-terminal";
-import onMessage from "./onMessage";
 import { Client, LocalAuth, Message } from "whatsapp-web.js";
+import dotenv from "dotenv";
+import os from 'os';
+import onMessage from "./onMessage";
+
+dotenv.config();
 
 process.on("uncaughtException", async (reason) => console.log(reason));
 process.on("unhandledRejection", async (reason) => console.log(reason));
@@ -21,7 +22,9 @@ switch (process.platform) {
       "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
     break;
   default:
-    clientExecutablePath = "/usr/bin/chromium-browser";
+    clientExecutablePath = os.release().includes("kali")
+      ? "/usr/bin/google-chrome-stable"
+      : "/usr/bin/chromium-browser";
 }
 
 const client = new Client({
@@ -56,12 +59,13 @@ client.on("message_create", async (msg: Message) => {
 client.on("call", async (call) => {
   setTimeout(async () => {
     try {
+      await call.reject();
       const contact = await client.getContactById(call.from as string);
       const contactName = contact.pushname || "Whatsapp user";
       await client.sendMessage(
         call.from as string,
         `[${
-          call.fromMe ? "_Outgoing_" : "_Incoming_"
+          call.fromMe ? " _Outgoing_ " : " _Incoming_ "
         }] Phone call from *${contactName}*, type ${
           call.isGroup ? "group" : ""
         } ${

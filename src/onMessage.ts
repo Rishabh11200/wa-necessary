@@ -1,7 +1,7 @@
-import { Message, Client, Buttons } from "whatsapp-web.js";
+import { Message, Client } from "whatsapp-web.js";
+import ytdl from "@distube/ytdl-core";
 import { checkStartCMD } from "./utils";
 import { count, help, helpMsg, sticker, sync, ytMiniHelp } from "./constants";
-import ytdl from "@distube/ytdl-core";
 import { onAudio } from "./yt";
 
 declare global {

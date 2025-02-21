@@ -11,7 +11,7 @@ export const helpMsg = (userName: string): string => {
     "\n\n_3._*!help*: To get this message." +
     "\n\n_4._*!count*: To get the number of chats in own whatsapp!" +
     "\n\n_5._*!sync*: To get the stats of sync the particular chat." +
-    "\n\n```-> Note:``` You can use any one these character to command *_['!', '.', '_', '#']_*.";
+    "\n\n```-> Note:``` You can use any one these character to command *['!', '.', '_', '#']*.";
   return msg;
 };
 
