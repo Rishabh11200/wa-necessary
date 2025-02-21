@@ -3,7 +3,7 @@ dotenv.config();
 
 import fs from "fs";
 import qrcode from "qrcode-terminal";
-import onMessage from "@/onMessage";
+import onMessage from "./onMessage";
 import { Client, LocalAuth, Message } from "whatsapp-web.js";
 
 process.on("uncaughtException", async (reason) => console.log(reason));
@@ -21,7 +21,7 @@ switch (process.platform) {
       "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
     break;
   default:
-    clientExecutablePath = "/usr/bin/google-chrome-stable";
+    clientExecutablePath = "/usr/bin/chromium-browser";
 }
 
 const client = new Client({

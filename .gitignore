@@ -105,6 +105,7 @@ dist
 
 # Whatsapp ignore
 .wwebjs_auth/
+.wwebjs_cache/
 
 # Remove lock files
 yarn.lock

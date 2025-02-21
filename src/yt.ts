@@ -3,7 +3,7 @@ import ffmpegForVideo from "ffmpeg-static";
 import fs from "fs";
 import { Client, Message, MessageMedia } from "whatsapp-web.js";
 import ytdl from "@distube/ytdl-core";
-import { download, checkAndUnlink } from "@/utils";
+import { download, checkAndUnlink } from "./utils";
 import cp from "child_process";
 
 export const onAudio = async (

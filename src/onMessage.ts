@@ -1,8 +1,8 @@
 import { Message, Client } from "whatsapp-web.js";
-import { checkStartCMD } from "@/utils";
-import { help, helpMsg, sticker, ytMiniHelp } from "@/constants";
+import { checkStartCMD } from "./utils";
+import { help, helpMsg, sticker, ytMiniHelp } from "./constants";
 import ytdl from "@distube/ytdl-core";
-import { onAudio } from "@/yt";
+import { onAudio } from "./yt";
 
 declare global {
   var ytReplied: Message | null;
