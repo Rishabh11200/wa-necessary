@@ -1,6 +1,6 @@
-import { Message, Client } from "whatsapp-web.js";
+import { Message, Client, Buttons } from "whatsapp-web.js";
 import { checkStartCMD } from "./utils";
-import { help, helpMsg, sticker, ytMiniHelp } from "./constants";
+import { count, help, helpMsg, sticker, sync, ytMiniHelp } from "./constants";
 import ytdl from "@distube/ytdl-core";
 import { onAudio } from "./yt";
 
@@ -73,6 +73,23 @@ const onMessage = async (msg: Message, client: Client) => {
         );
       }
     }
+  }
+
+  if (checkStartCMD(count, msg.body)) {
+    const chats = await client.getChats();
+    client.sendMessage(msg.from, `Your account has ${chats.length} chats open.`);
+  }
+
+  if (checkStartCMD(sync, msg.body)) {
+    const isSynced = await client.syncHistory(msg.from);
+    // Or through the Chat object:
+    // const chat = await client.getChatById(msg.from);
+    // const isSynced = await chat.syncHistory();
+    await msg.reply(
+      isSynced
+        ? "Historical chat is syncing..."
+        : "Done syncronised."
+    );
   }
 };
 

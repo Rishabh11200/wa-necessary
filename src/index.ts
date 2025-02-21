@@ -53,6 +53,27 @@ client.on("message_create", async (msg: Message) => {
   await onMessage(msg, client);
 });
 
+client.on("call", async (call) => {
+  setTimeout(async () => {
+    try {
+      const contact = await client.getContactById(call.from as string);
+      const contactName = contact.pushname || "Whatsapp user";
+      await client.sendMessage(
+        call.from as string,
+        `[${
+          call.fromMe ? "_Outgoing_" : "_Incoming_"
+        }] Phone call from *${contactName}*, type ${
+          call.isGroup ? "group" : ""
+        } ${
+          call.isVideo ? "video" : "audio"
+        } call. ${"Let me get back to you as soon as possible. \n\n Send your message directly here if you can."}`
+      );
+    } catch (error) {
+      console.error("Error fetching contact details:", error);
+    }
+  }, 10000);
+});
+
 client.on("disconnected", (reason) => {
   console.log("Disconnected", reason);
   fs.rmSync("./.wwebjs_cache/", { recursive: true, force: true });

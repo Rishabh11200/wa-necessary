@@ -9,6 +9,8 @@ export const helpMsg = (userName: string): string => {
     "\n    i: _!yt some.youtube.link_ " +
     "\n   ii: _!yt audio_" +
     "\n\n_3._*!help*: To get this message." +
+    "\n\n_4._*!count*: To get the number of chats in own whatsapp!" +
+    "\n\n_5._*!sync*: To get the stats of sync the particular chat." +
     "\n\n```-> Note:``` You can use any one these character to command *_['!', '.', '_', '#']_*.";
   return msg;
 };
@@ -17,3 +19,5 @@ export const ytMiniHelp: string = "Reply to youtube link: *Audio*_?_👆🏻🤔
 
 export const help = ["!help", ".help", "_help", "#help"];
 export const sticker = ["!sticker", ".sticker", "_sticker", "#sticker"];
+export const count = ["!count", ".count", "_count", "#count"];
+export const sync = ["!sync", ".sync", "_sync", "#sync"];

@@ -83,7 +83,6 @@ export const onAudio = async (
                   checkAndUnlink(`./db/${universalName}.mp3`);
                   checkAndUnlink(`./db/${universalName}1.mp3`);
                   checkAndUnlink(`./db/${universalName}.jpg`);
-                  // await globalThis.ytReplied.delete(true);
                 })
                 .catch(async (err) => {
                   console.log("Sending audio", err);
@@ -133,7 +132,6 @@ export const onAudio = async (
                   checkAndUnlink(`./db/${universalName}.mp3`);
                   checkAndUnlink(`./db/${universalName}1.mp3`);
                   checkAndUnlink(`./db/${universalName}.jpg`);
-                  // await globalThis.ytReplied.delete(true);
                 })
                 .catch(async (err) => {
                   console.log("Sending audio", err);
