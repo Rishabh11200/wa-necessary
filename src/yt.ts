@@ -5,6 +5,7 @@ import { Client, Message, MessageMedia } from "whatsapp-web.js";
 import ytdl from "@distube/ytdl-core";
 import cp from "child_process";
 import { download, checkAndUnlink } from "./utils";
+import youtubeDl, { Payload } from "youtube-dl-exec";
 
 export const onAudio = async (
   ytLink: string,
@@ -15,150 +16,103 @@ export const onAudio = async (
   const universalName = msgForID.id.id;
   try {
     let thumbnailDownloaded = false;
-    const info = await ytdl.getInfo(ytLink);
-    let title = info?.videoDetails?.title.replace(/\s+/g, "_").trim();
-    fs.writeFileSync(`./db/${universalName}.mp3`, "");
-    fs.writeFileSync(`./db/${universalName}1.mp3`, "");
-    const audioStream = ytdl(ytLink, {
-      filter: "audioonly",
-      quality: "highestaudio",
-    });
+    
+    const info = (await youtubeDl(ytLink, {
+      dumpSingleJson: true,
+    })) as Payload;
+    const title = info.title.replace(/\s+/g, "_").trim();
     const metadata = {
-      title:
-        info?.videoDetails?.title?.replace(/\s+/g, "_").trim() ?? "Unknown",
-      artist:
-        info?.videoDetails?.author?.name?.replace(/\s+/g, "_").trim() ??
-        "Unknown",
-      year: info?.player_response?.microformat?.playerMicroformatRenderer?.publishDate?.substring(
-        0,
-        4
-      ),
+      title: info.title ?? "Unknown",
+      artist: info.uploader ?? "Unknown",
+      year: info.upload_date?.substring(0, 4) ?? "Unknown",
       genre: "Unknown",
     };
-    const thumbnailurl =
-      info?.player_response?.microformat?.playerMicroformatRenderer?.thumbnail
-        .thumbnails[0].url;
+
+    const thumbnailurl = info.thumbnail;
     if (thumbnailurl) {
       fs.writeFileSync(`./db/${universalName}.jpg`, "");
       download(thumbnailurl, `./db/${universalName}.jpg`, function () {
         thumbnailDownloaded = true;
       });
     }
-    ffmpeg(audioStream)
-      .audioBitrate(320)
-      .toFormat("mp3")
-      .saveToFile(`./db/${universalName}.mp3`)
-      .on("end", async () => {
-        if (thumbnailDownloaded) {
-          ffmpeg()
-            .input(`./db/${universalName}.mp3`)
-            .input(`./db/${universalName}.jpg`)
-            .outputOptions([
-              "-map 0:0",
-              "-map 1:0",
-              "-c copy",
-              "-id3v2_version 3",
-              `-metadata:s:v title=\"Album_cover\"`,
-              `-metadata:s:v comment=\"Cover_(front)\"`,
-              `-metadata`,
-              `title=${metadata.title}`,
-              `-metadata`,
-              `artist=${metadata.artist}`,
-              `-metadata`,
-              `date=${metadata.year}`,
-              `-metadata`,
-              `genre=${metadata.genre}`,
-            ])
-            .output(`./db/${universalName}1.mp3`)
-            .on("end", async () => {
-              const mp3 = MessageMedia.fromFilePath(
-                `./db/${universalName}1.mp3`
-              );
-              mp3.filename = `${title}.mp3`;
-              await client
-                .sendMessage(toChat, mp3, { sendMediaAsDocument: true })
-                .then(async (sent) => {
-                  sent.react("✅");
-                  msgForID.react("✅");
-                  checkAndUnlink(`./db/${universalName}.mp3`);
-                  checkAndUnlink(`./db/${universalName}1.mp3`);
-                  checkAndUnlink(`./db/${universalName}.jpg`);
-                })
-                .catch(async (err) => {
-                  console.log("Sending audio", err);
-                  msgForID.react("❌");
-                  await client.sendMessage(toChat, "Try again");
-                  checkAndUnlink(`./db/${universalName}.mp3`);
-                  checkAndUnlink(`./db/${universalName}1.mp3`);
-                  checkAndUnlink(`./db/${universalName}.jpg`);
-                });
-            })
-            .on("error", function (err, stdout, stderr) {
-              console.error("An error occurred: " + err.message);
-              console.error("FFmpeg stdout: " + stdout);
-              console.error("FFmpeg stderr: " + stderr);
-              checkAndUnlink(`./db/${universalName}.mp3`);
+
+    // Download audio using youtube-dl-exec
+    const audioOutputPath = `./db/${universalName}.mp3`;
+    await youtubeDl(ytLink, {
+      extractAudio: true,
+      audioFormat: "mp3",
+      audioQuality: 0,
+      output: audioOutputPath,
+    });
+
+    if (thumbnailDownloaded) {
+      ffmpeg()
+        .input(audioOutputPath)
+        .input(`./db/${universalName}.jpg`)
+        .outputOptions([
+          "-map 0:0",
+          "-map 1:0",
+          "-c copy",
+          "-id3v2_version 3",
+          `-metadata:s:v title="Album_cover"`,
+          `-metadata:s:v comment="Cover_(front)"`,
+          `-metadata`,
+          `title=${metadata.title}`,
+          `-metadata`,
+          `artist=${metadata.artist}`,
+          `-metadata`,
+          `date=${metadata.year}`,
+          `-metadata`,
+          `genre=${metadata.genre}`,
+        ])
+        .output(`./db/${universalName}1.mp3`)
+        .on("end", async () => {
+          const mp3 = MessageMedia.fromFilePath(`./db/${universalName}1.mp3`);
+          mp3.filename = `${title}.mp3`;
+          await client
+            .sendMessage(toChat, mp3, { sendMediaAsDocument: true })
+            .then(async (sent) => {
+              sent.react("✅");
+              msgForID.react("✅");
+              checkAndUnlink(audioOutputPath);
               checkAndUnlink(`./db/${universalName}1.mp3`);
               checkAndUnlink(`./db/${universalName}.jpg`);
             })
-            .run();
-        } else {
-          ffmpeg()
-            .input(`./db/${universalName}.mp3`)
-            .input(`./db/${universalName}.jpg`)
-            .outputOptions([
-              "-c copy",
-              "-id3v2_version 3",
-              `-metadata`,
-              `title=${metadata.title}`,
-              `-metadata`,
-              `artist=${metadata.artist}`,
-              `-metadata`,
-              `date=${metadata.year}`,
-              `-metadata`,
-              `genre=${metadata.genre}`,
-            ])
-            .output(`./db/${universalName}1.mp3`)
-            .on("end", async () => {
-              const mp3 = MessageMedia.fromFilePath(
-                `./db/${universalName}1.mp3`
-              );
-              mp3.filename = title;
-              await client
-                .sendMessage(toChat, mp3, { sendMediaAsDocument: true })
-                .then(async (sent) => {
-                  sent.react("✅");
-                  msgForID.react("✅");
-                  checkAndUnlink(`./db/${universalName}.mp3`);
-                  checkAndUnlink(`./db/${universalName}1.mp3`);
-                  checkAndUnlink(`./db/${universalName}.jpg`);
-                })
-                .catch(async (err) => {
-                  console.log("Sending audio", err);
-                  msgForID.react("❌");
-                  await client.sendMessage(toChat, "Try again");
-                  checkAndUnlink(`./db/${universalName}.mp3`);
-                  checkAndUnlink(`./db/${universalName}1.mp3`);
-                  checkAndUnlink(`./db/${universalName}.jpg`);
-                });
-            })
-            .on("error", function (err, stdout, stderr) {
-              console.error("An error occurred: " + err.message);
-              console.error("FFmpeg stdout: " + stdout);
-              console.error("FFmpeg stderr: " + stderr);
-              checkAndUnlink(`./db/${universalName}.mp3`);
+            .catch(async (err) => {
+              console.log("Sending audio", err);
+              msgForID.react("❌");
+              await client.sendMessage(toChat, "Try again");
+              checkAndUnlink(audioOutputPath);
               checkAndUnlink(`./db/${universalName}1.mp3`);
               checkAndUnlink(`./db/${universalName}.jpg`);
-            })
-            .run();
-        }
-      })
-      .on("error", (error) => {
-        checkAndUnlink(`./db/${universalName}.mp3`);
-        checkAndUnlink(`./db/${universalName}1.mp3`);
-        checkAndUnlink(`./db/${universalName}.jpg`);
-        console.log("ffmpeg", error);
-      });
+            });
+        })
+        .on("error", function (err, stdout, stderr) {
+          console.error("An error occurred: " + err.message);
+          console.error("FFmpeg stdout: " + stdout);
+          console.error("FFmpeg stderr: " + stderr);
+          checkAndUnlink(audioOutputPath);
+          checkAndUnlink(`./db/${universalName}1.mp3`);
+          checkAndUnlink(`./db/${universalName}.jpg`);
+        })
+        .run();
+    } else {
+      const mp3 = MessageMedia.fromFilePath(audioOutputPath);
+      mp3.filename = `${title}.mp3`;
+      await client
+        .sendMessage(toChat, mp3, { sendMediaAsDocument: true })
+        .then(async (sent) => {
+          sent.react("✅");
+          msgForID.react("✅");
+          checkAndUnlink(audioOutputPath);
+        })
+        .catch(async (err) => {
+          console.log("Sending audio", err);
+          msgForID.react("❌");
+          await client.sendMessage(toChat, "Try again");
+          checkAndUnlink(audioOutputPath);
+        });
+    }
   } catch (error) {
     checkAndUnlink(`./db/${universalName}.mp3`);
     checkAndUnlink(`./db/${universalName}1.mp3`);
