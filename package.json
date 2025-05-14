@@ -21,6 +21,7 @@
     "fuse.js": "^7.0.0",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.88.2",
+    "selenium-webdriver": "^4.32.0",
     "whatsapp-web.js": "1.26.1-alpha.3",
     "youtube-dl-exec": "^3.0.19"
   },
@@ -29,6 +30,7 @@
     "@types/node": "^22.13.4",
     "@types/qrcode-terminal": "^0.12.2",
     "@types/request": "^2.48.12",
+    "@types/selenium-webdriver": "^4.1.28",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",

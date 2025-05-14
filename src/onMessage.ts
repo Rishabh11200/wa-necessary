@@ -1,8 +1,17 @@
 import { Message, Client } from "whatsapp-web.js";
 import ytdl from "@distube/ytdl-core";
 import { checkStartCMD } from "./utils";
-import { count, help, helpMsg, sticker, sync, ytMiniHelp } from "./constants";
+import {
+  count,
+  help,
+  helpMsg,
+  sticker,
+  sync,
+  track,
+  ytMiniHelp,
+} from "./constants";
 import { onAudio } from "./yt";
+import { BlueDartTracker } from "./bluedart";
 
 declare global {
   var ytReplied: Message | null;
@@ -77,7 +86,10 @@ const onMessage = async (msg: Message, client: Client) => {
 
   if (checkStartCMD(count, msg.body)) {
     const chats = await client.getChats();
-    client.sendMessage(msg.from, `Your account has ${chats.length} chats open.`);
+    client.sendMessage(
+      msg.from,
+      `Your account has ${chats.length} chats open.`
+    );
   }
 
   if (checkStartCMD(sync, msg.body)) {
@@ -86,10 +98,25 @@ const onMessage = async (msg: Message, client: Client) => {
     // const chat = await client.getChatById(msg.from);
     // const isSynced = await chat.syncHistory();
     await msg.reply(
-      isSynced
-        ? "Historical chat is syncing..."
-        : "Done syncronised."
+      isSynced ? "Historical chat is syncing..." : "Done syncronised."
     );
+  }
+
+  if (checkStartCMD(track, msg.body)) {
+    const parts = msg.body.split(' ');
+    const number = parts[1];
+    const trackingNumbers = number;
+    const captchaSolverApiUrl = "http://captcha.rishabhshah.tech/solve-captcha";
+    const tracker = new BlueDartTracker(
+      captchaSolverApiUrl,
+      client,
+      chatID.id._serialized
+    );
+    try {
+      await tracker.trackPackage(trackingNumbers);
+    } catch (error) {
+      console.error("Error in track function:", error);
+    }
   }
 };
 

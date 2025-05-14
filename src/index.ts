@@ -2,7 +2,7 @@ import fs from "fs";
 import qrcode from "qrcode-terminal";
 import { Client, LocalAuth, Message } from "whatsapp-web.js";
 import dotenv from "dotenv";
-import os from 'os';
+import os from "os";
 import onMessage from "./onMessage";
 
 dotenv.config();
@@ -10,19 +10,21 @@ dotenv.config();
 process.on("uncaughtException", async (reason) => console.log(reason));
 process.on("unhandledRejection", async (reason) => console.log(reason));
 
-let clientExecutablePath: string;
+declare global {
+  var clientExecutablePath: string;
+}
 
 switch (process.platform) {
   case "win32":
-    clientExecutablePath =
+    globalThis.clientExecutablePath =
       "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
     break;
   case "darwin":
-    clientExecutablePath =
+    globalThis.clientExecutablePath =
       "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
     break;
   default:
-    clientExecutablePath = os.release().includes("kali")
+    globalThis.clientExecutablePath = os.release().includes("kali")
       ? "/usr/bin/google-chrome-stable"
       : "/usr/bin/chromium-browser";
 }
@@ -31,7 +33,7 @@ const client = new Client({
   authStrategy: new LocalAuth({ clientId: "client-one" }),
   puppeteer: {
     headless: true,
-    executablePath: clientExecutablePath,
+    executablePath: globalThis.clientExecutablePath,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
 });
