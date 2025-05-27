@@ -7,7 +7,9 @@ import FormData from "form-data";
 import { Client, Message } from "whatsapp-web.js";
 
 // Set up Chrome options
-const browserOptions = new Options().setChromeBinaryPath(globalThis.clientExecutablePath);
+const browserOptions = new Options().setChromeBinaryPath(
+  globalThis.clientExecutablePath
+);
 browserOptions.addArguments("--headless");
 
 let msg: Message;
@@ -235,119 +237,122 @@ class BlueDartTracker {
    * Click on the "Status and Scan" tab and extract tracking information
    * @returns Formatted tracking information
    */
-
   async extractTrackingDetails(): Promise<string> {
     try {
-      // Wait for the tracking results to load and be visible
-      await this.driver.wait(
-        until.elementLocated(By.css("a[href*='#SCAN'][data-toggle='tab']")),
+      // Wait for any "Shipment Details" tab to be present and extract its href attribute
+      const shipmentTab = await this.driver.wait(
+        until.elementLocated(By.css("a[data-toggle='tab'][href^='#SHIP']")),
         15000
       );
+      const shipmentHref = await shipmentTab.getAttribute("href");
+      const waybillIdMatch = shipmentHref.match(/#SHIP(\d+)/);
+      if (!waybillIdMatch) throw new Error("Waybill ID not found in tab href!");
+      const waybillId = waybillIdMatch[1];
+
+      const scanTabSelector = `a[data-toggle='tab'][href='#SCAN${waybillId}']`;
+      const shipTabSelector = `a[data-toggle='tab'][href='#SHIP${waybillId}']`;
+      const scanTabContentSelector = `div#SCAN${waybillId} table tbody tr`;
 
       // Click on the "Status and Scan" tab
       const statusScanTab = await this.driver.findElement(
-        By.css("a[href*='#SCAN'][data-toggle='tab']")
+        By.css(scanTabSelector)
       );
       await statusScanTab.click();
-
-      // Wait for the table to be visible
       await this.driver.wait(
-        until.elementLocated(By.css("div[id*='SCAN'] table tbody tr")),
+        until.elementLocated(By.css(scanTabContentSelector)),
         10000
       );
-
-      // Wait a moment to ensure the tab content is fully loaded
       await this.driver.sleep(1000);
-      // Extract shipment details from the other tab for a more comprehensive message
-      // First click on the Shipment Details tab
+
+      // Click on the Shipment Details tab
       const shipmentDetailsTab = await this.driver.findElement(
-        By.css("a[href*='#SHIP'][data-toggle='tab']")
+        By.css(shipTabSelector)
       );
-
       await shipmentDetailsTab.click();
-
-      // Wait for the shipment details to load
       await this.driver.wait(
-        until.elementLocated(By.css("div[id*='SHIP'] table tbody tr")),
+        until.elementLocated(By.css(`div#SHIP${waybillId} table`)),
         10000
       );
 
-      // Extract shipment details
+      // Extract values from Shipment Details table using their labels
+      const getShipmentDetailByLabel = async (label: string) => {
+        const xpath = `//div[@id='SHIP${waybillId}']//tr[th[contains(normalize-space(.), '${label}')]]/td`;
+        const cell = await this.driver.findElement(By.xpath(xpath));
+        return await cell.getText();
+      };
 
-      const waybillNo = await this.driver
-        .findElement(By.css("div[id*='SHIP'] table tbody tr:nth-child(1) td"))
-        .getText();
+      const waybillNo = await getShipmentDetailByLabel("Waybill No");
+      const pickupDate = await getShipmentDetailByLabel("Pickup Date");
+      const fromLocation = await getShipmentDetailByLabel("From");
+      const toLocation = await getShipmentDetailByLabel("To");
+      const status = await getShipmentDetailByLabel("Status");
+      const expectedDate = await getShipmentDetailByLabel(
+        "Expected Date of Delivery"
+      );
+      const referenceNo = await getShipmentDetailByLabel("Reference No");
 
-      const pickupDate = await this.driver
-        .findElement(By.css("div[id*='SHIP'] table tbody tr:nth-child(2) td"))
-        .getText();
-
-      const fromLocation = await this.driver
-        .findElement(By.css("div[id*='SHIP'] table tbody tr:nth-child(3) td"))
-        .getText();
-
-      const toLocation = await this.driver
-        .findElement(By.css("div[id*='SHIP'] table tbody tr:nth-child(4) td"))
-        .getText();
-
-      const status = await this.driver
-        .findElement(By.css("div[id*='SHIP'] table tbody tr:nth-child(5) td"))
-        .getText();
-
-      const expectedDelivery = await this.driver
-        .findElement(By.css("div[id*='SHIP'] table tbody tr:nth-child(6) td"))
-        .getText();
-
-      // Now go back to Status and Scan tab to get the latest update
+      // Go back to Status and Scan tab to get the latest update
       await statusScanTab.click();
-
       await this.driver.wait(
-        until.elementLocated(By.css("div[id*='SCAN'] table tbody tr")),
+        until.elementLocated(By.css(scanTabContentSelector)),
         10000
       );
 
-      // Extract the first row from the Status and Scan table
-      const firstRowCells = await this.driver.findElements(
-        By.css("div[id*='SCAN'] table tbody tr:first-child td")
+      const firstRow = await this.driver.findElement(
+        By.css(`${scanTabContentSelector}:first-child`)
       );
+      const latestCells = await firstRow.findElements(By.css("td"));
+      const latestLocation = await latestCells[0].getText();
+      const latestDetails = await latestCells[1].getText();
+      const latestDate = await latestCells[2].getText();
+      const latestTime = await latestCells[3].getText();
 
-      const latestLocation = await firstRowCells[0].getText();
-      const latestDetails = await firstRowCells[1].getText();
-      const latestDate = await firstRowCells[2].getText();
-      const latestTime = await firstRowCells[3].getText();
+      // Emoji mapping
+      const getStatusEmoji = (statusText: string) => {
+        const text = statusText.toLowerCase();
+        if (text.includes("delivered")) return "✅📦";
+        if (text.includes("out for delivery")) return "🚚💨";
+        if (text.includes("in transit")) return "🛣️";
+        if (text.includes("pickup")) return "🛎️";
+        if (text.includes("booked")) return "📝";
+        if (text.includes("pending")) return "⏳";
+        if (text.includes("exception")) return "⚠️";
+        if (text.includes("arrived")) return "📬";
+        if (text.includes("returned")) return "↩️";
+        if (text.includes("cancelled")) return "❌";
+        return "📦";
+      };
 
-      const message = `*📦 SHIPMENT TRACKED*
+      const statusEmoji = getStatusEmoji(status);
+      const updateEmoji = getStatusEmoji(latestDetails);
 
-    *Waybill No:* ${waybillNo}
-    *Route:* ${fromLocation} ➡️ ${toLocation}
-    *Pickup Date:* ${pickupDate}
-    *Expected Delivery:* ${expectedDelivery}
-    *Current Status:* ${status}
+      const message = `
+━━━━━━━━━━━━━━━━━━━━
+${statusEmoji} *SHIPMENT STATUS*
+━━━━━━━━━━━━━━━━━━━━
+🔖 *Waybill No:* \`${waybillNo}\`
+📦 *Pickup Date:* \`${pickupDate}\`
+🛫 *From:* \`${fromLocation}\`
+🛬 *To:* \`${toLocation}\`
+📊 *Current Status:* ${statusEmoji} ${status}
+🗓️ *Expected Delivery:* \`${expectedDate}\`
+📎 *Reference No:* \`${referenceNo}\`
 
-    *🕒 LATEST UPDATE*
-    *Location:* ${latestLocation}
-    *Details:* ${latestDetails}
-    *Date:* ${latestDate}
-    *Time:* ${latestTime}
-    `;
+━━━━━━━━━━━━━━━━━━━━
+${updateEmoji} *LATEST MOVEMENT*
+━━━━━━━━━━━━━━━━━━━━
+📍 *Location:* ${latestLocation}
+📝 *Details:* ${updateEmoji} ${latestDetails}
+🗓️ *Date:* \`${latestDate}\`
+🕒 *Time:* \`${latestTime}\`
+━━━━━━━━━━━━━━━━━━━━
+`.trim();
 
       return message;
     } catch (error) {
       console.error("Error extracting tracking details:", error);
       return "Failed to extract tracking details. Error: " + error;
     }
-  }
-
-  /**
-  
-     * Helper function to pad a string to the right
-     * @param str String to pad
-     * @param length Total length after padding
-     * @returns Padded string
-     */
-
-  private padRight(str: string, length: number): string {
-    return str.padEnd(length);
   }
 
   /**
