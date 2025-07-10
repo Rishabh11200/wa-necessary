@@ -136,7 +136,7 @@ export const listGoogleSubsHelper = async (msg: Message) => {
       );
     } else {
       let list = Array.from(forumMonitorSubscribers.values())
-        .map((sub, idx) => `${idx + 1}. ${sub.number}`)
+        .map((sub, idx) => `- ${idx + 1} user - ${sub.number}`)
         .join("\n");
       await msg.reply(`*Google Forum Subscribers:*\n${list}`);
     }
