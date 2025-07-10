@@ -5,13 +5,23 @@ import {
   count,
   help,
   helpMsg,
+  listgsubs,
   sticker,
+  subgoogle,
   sync,
   track,
+  unsubg,
+  unsubgoogle,
   ytMiniHelp,
 } from "./constants";
 import { onAudio } from "./yt";
 import { BlueDartTracker } from "./bluedart";
+import {
+  listGoogleSubsHelper,
+  trackGoogleHelper,
+  unsubscribeGoogleHelper,
+  unSubsNumHelper,
+} from "./forumMonitorHelper";
 
 declare global {
   var ytReplied: Message | null;
@@ -21,6 +31,25 @@ globalThis.ytReplied = null;
 const onMessage = async (msg: Message, client: Client) => {
   let userName: string = (msg.rawData as any)?.notifyName ?? "Whatsapp user";
   let chatID = await msg.getChat();
+
+  if (checkStartCMD(subgoogle, msg.body)) {
+    const chatId = chatID.id._serialized;
+    const number = msg.from;
+    await trackGoogleHelper(chatId, number, msg, client);
+  }
+
+  if (checkStartCMD(unsubgoogle, msg.body)) {
+    const chatId = chatID.id._serialized;
+    await unsubscribeGoogleHelper(chatId, msg);
+  }
+
+  if (checkStartCMD(listgsubs, msg.body)) {
+    await listGoogleSubsHelper(msg);
+  }
+
+  if (checkStartCMD(unsubg, msg.body)) {
+    await unSubsNumHelper(msg);
+  }
 
   if (checkStartCMD(help, msg.body)) {
     msg.react("🧐");
@@ -103,7 +132,7 @@ const onMessage = async (msg: Message, client: Client) => {
   }
 
   if (checkStartCMD(track, msg.body)) {
-    const parts = msg.body.split(' ');
+    const parts = msg.body.split(" ");
     const number = parts[1];
     const trackingNumbers = number;
     const captchaSolverApiUrl = "http://captcha.rishabhshah.tech/solve-captcha";
